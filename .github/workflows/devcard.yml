@@ -1,0 +1,37 @@
+name: DevCard
+
+# Regenera `devcard.png` con las estadísticas actuales de daily.dev y lo
+# commitea al repo. Se commitea el PNG (en vez de enlazar el de daily.dev)
+# porque GitHub sirve toda imagen externa a través de su proxy Camo, que la
+# CACHEA: un enlace directo se congelaría con los datos del día que se pintó.
+# Al vivir el fichero en el repo, cada cambio invalida la caché de Camo solo.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # botón "Run workflow" en la pestaña Actions
+  schedule:
+    # Semanal, no diario: git guarda casi entero cada binario nuevo, así que
+    # un cron diario mete 365 PNG de ~250 KB al año en el historial. Para un
+    # contador de artículos leídos, la frescura diaria no aporta nada.
+    - cron: "0 4 * * 1" # lunes, 04:00 UTC
+
+jobs:
+  devcard:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # el GITHUB_TOKEN es de solo lectura por defecto
+    steps:
+      - uses: actions/checkout@v4
+
+      # Fijada por SHA y no por tag: un tag se puede reasignar, un SHA no.
+      # 958db5a == 3.2.1. Al actualizar versión, cambiar SHA *y* comentario.
+      - name: Generar DevCard
+        uses: dailydotdev/action-devcard@958db5a3e058fa60678968743b17214f7fc03a4b
+        with:
+          user_id: ${{ secrets.USER_ID }}
+          commit_message: "chore(devcard): actualiza la tarjeta"
+          # committer_email se deja en el de por defecto
+          # (github-actions[bot] <noreply@github.com>) A PROPÓSITO: poner el
+          # tuyo haría que estos commits contasen como contribuciones y te
+          # pintaría un año de actividad falsa en el gráfico del perfil.
