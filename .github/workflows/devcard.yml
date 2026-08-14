@@ -22,10 +22,17 @@ jobs:
     permissions:
       contents: write # el GITHUB_TOKEN es de solo lectura por defecto
     steps:
-      - uses: actions/checkout@v4
+      # NO hace falta actions/checkout: esta action no escribe en el disco del
+      # runner, commitea el PNG por la API de contenidos de GitHub
+      # (createOrUpdateFileContents). Clonar el repo sería trabajo tirado.
 
       # Fijada por SHA y no por tag: un tag se puede reasignar, un SHA no.
       # 958db5a == 3.2.1. Al actualizar versión, cambiar SHA *y* comentario.
+      #
+      # ⚠️ 3.2.1 declara `using: node20`, deprecado: los runners la fuerzan ya
+      # sobre Node 24 y avisan en cada ejecución. Es un warning de upstream,
+      # no un fallo, y NO se arregla desde aquí — solo cuando daily.dev
+      # publique una versión con `node24`. Comprobar al actualizar el SHA.
       - name: Generar DevCard
         uses: dailydotdev/action-devcard@958db5a3e058fa60678968743b17214f7fc03a4b
         with:
